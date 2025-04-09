@@ -2,13 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 const BASE_URL = 'https://api.kanye.rest/';
-const nameDirectory = 'phrases'; // Тут пишите имя директории в которой нужно создавать файлы
+const directoryName = 'phrases'; // Тут пишите имя директории в которой нужно создавать файлы
 const TOTAL_FOLDER = 10; // Количество подкаталогов
 const TOTAL_IN_FOLDER = 10; // Количество записей в подкоталоге
 
 
 // Функция запроса.
-async function fetching(){
+async function fetchPhrases(){
     try {
         const response = await fetch(BASE_URL);
         return response.json();
@@ -17,9 +17,9 @@ async function fetching(){
     }
 }
 
-// Создание структуры + запись данных
-async function CreateStruct(){
-    const currentDirectory = path.join(process.cwd(), nameDirectory);
+
+async function writePhrases(){
+    const currentDirectory = path.join(process.cwd(), directoryName);
     // process.cwd() = где находится скрипт берем эту директорию.
 
     if (!fs.existsSync(currentDirectory)) {
@@ -27,26 +27,25 @@ async function CreateStruct(){
     }
     
     for(let i = 0; i < TOTAL_FOLDER; i++){
-        const folderPathCreate = path.join(phrasesDir, `folder_${i+1}`);
-        fs.mkdirSync(folderPathCreate);
-        const allData = [];
+        const folderPath = path.join(currentDirectory, `folder_${i+1}`);
+        fs.mkdirSync(folderPath);
+        const phrases = [];
         for(let j = 0; j < TOTAL_IN_FOLDER; j++){
-            const data = await fetching();
-            if(data){
-                allData.push(data);
+            const phrase = await fetchPhrases();
+            if(phrase){
+                phrases.push(phrase.quote);
             }
         }
 
-        const filePath = path.join(folderPathCreate, 'index.json');
-        fs.writeFileSync(filePath, JSON.stringify(allData, null, 2));
+        const filePath = path.join(folderPath, 'index.json');
+        fs.writeFileSync(filePath, JSON.stringify(phrases, null, 2));
     }
 }
 
-// Функция для старта скрипта.
-async function mainStart(){
-    await CreateStruct();
-    console.log('Script Done!');
-    
-}
 
-mainStart();
+// Запуск скрипта
+(async() =>{
+    await writePhrases();
+    console.log('Script Done!');
+})()
+
